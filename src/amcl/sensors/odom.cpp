@@ -103,7 +103,7 @@ Odom::setModel(OdomModelType type,
 
 ////////////////////////////////////////////////////////////////////////////////
 // Apply the action model
-bool Odom::updateAction(ParticleFilter *pf, SensorData *data)
+bool Odom::updateAction(std::shared_ptr<ParticleFilter> pf, SensorData *data)
 {
   OdomData *ndata;
   ndata = (OdomData*) data;

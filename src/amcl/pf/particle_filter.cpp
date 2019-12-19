@@ -35,6 +35,7 @@
 #include <cstdlib>
 
 #include "pf/pdf_gaussian.h"
+#include "sensors/sensor.h"
 
 using namespace amcl;
 
@@ -250,7 +251,7 @@ ParticleFilter::updateAction(PFActionModelFnPtr action_fn, void *action_data)
 
 // Update the filter with some new sensor observation
 void
-ParticleFilter::updateSensor(PFSensorModelFnPtr sensor_fn, void *sensor_data)
+ParticleFilter::updateSensor(PFSensorModelFnPtr sensor_fn, std::shared_ptr<SensorData> sensor_data)
 {
   int i;
   PFSampleSet *set;

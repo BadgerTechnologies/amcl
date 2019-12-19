@@ -26,6 +26,8 @@
 #ifndef AMCL_SENSOR_H
 #define AMCL_SENSOR_H
 
+#include <memory>
+
 #include "pf/particle_filter.h"
 
 namespace amcl
@@ -63,7 +65,7 @@ class SensorData
   // Pointer to sensor that generated the data
   public:
     virtual ~SensorData() {}
-    Sensor *sensor_;
+    std::shared_ptr<Sensor> sensor_;
 };
 
 }

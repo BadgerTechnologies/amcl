@@ -27,6 +27,8 @@
 #ifndef AMCL_PARTICLE_FILTER_H
 #define AMCL_PARTICLE_FILTER_H
 
+#include <memory>
+
 #include "pf/pf_kdtree.h"
 #include "pf/pf_vector.h"
 
@@ -88,6 +90,8 @@ typedef struct
   int converged; 
 } PFSampleSet;
 
+class SensorData;
+
 // Function prototype for the initialization model; generates a sample pose from
 // an appropriate distribution.
 typedef PFVector (*PFInitModelFnPtr) (void *init_data);
@@ -98,7 +102,7 @@ typedef void (*PFActionModelFnPtr) (void *action_data, PFSampleSet* set);
 
 // Function prototype for the sensor model; determines the probability
 // for the given set of sample poses.
-typedef double (*PFSensorModelFnPtr) (void *sensor_data, PFSampleSet* set);
+typedef double (*PFSensorModelFnPtr) (std::shared_ptr<SensorData> sensor_data, PFSampleSet* set);
 
 // Information for an entire filter
 class ParticleFilter
@@ -128,7 +132,7 @@ class ParticleFilter
     void updateAction(PFActionModelFnPtr action_fn, void *action_data);
 
     // Update the filter with some new sensor observation
-    void updateSensor(PFSensorModelFnPtr sensor_fn, void *sensor_data);
+    void updateSensor(PFSensorModelFnPtr sensor_fn, std::shared_ptr<SensorData> sensor_data);
 
     // Resample the distribution
     void updateResample();

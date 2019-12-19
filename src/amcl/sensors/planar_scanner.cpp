@@ -37,11 +37,10 @@ using namespace amcl;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Default constructor
-PlanarScanner::PlanarScanner(size_t max_beams, OccupancyMap* map) : Sensor(),
-                             max_samples_(0), max_obs_(0), temp_obs_(NULL)
+PlanarScanner::PlanarScanner() : Sensor(),
+                             max_beams_(0), max_samples_(0), max_obs_(0), temp_obs_(NULL)
 {
-  this->max_beams_ = max_beams;
-  this->map_ = map;
+  this->map_ = nullptr;
 
   this->off_map_factor_ = 1.0;
   this->non_free_space_factor_ = 1.0;
@@ -59,6 +58,13 @@ PlanarScanner::~PlanarScanner()
 	}
 	delete []temp_obs_;
   }
+}
+
+void
+PlanarScanner::init(size_t max_beams, std::shared_ptr<OccupancyMap> map)
+{
+  this->max_beams_ = max_beams;
+  this->map_ = map;
 }
 
 void
@@ -151,7 +157,7 @@ PlanarScanner::setMapFactors(double off_map_factor, double non_free_space_factor
 ////////////////////////////////////////////////////////////////////////////////
 // Apply the planar sensor model
 bool
-PlanarScanner::updateSensor(ParticleFilter *pf, SensorData *data)
+PlanarScanner::updateSensor(std::shared_ptr<ParticleFilter> pf, std::shared_ptr<SensorData> data)
 {
   if (this->max_beams_ < 2)
     return false;
@@ -165,29 +171,29 @@ PlanarScanner::updateSensor(ParticleFilter *pf, SensorData *data)
 ////////////////////////////////////////////////////////////////////////////////
 // Apply the planar sensor model to a sample set
 double
-PlanarScanner::applyModelToSampleSet(SensorData *data, PFSampleSet *set)
+PlanarScanner::applyModelToSampleSet(std::shared_ptr<SensorData> data, PFSampleSet *set)
 {
-  PlanarScanner *self;
+  std::shared_ptr<PlanarScanner> self;
   double rv = 0.0;
   int j;
   PFSample *sample;
   PFVector pose;
   int mi, mj;
 
-  self = (PlanarScanner*) data->sensor_;
+  self = std::dynamic_pointer_cast<PlanarScanner>(data->sensor_);
 
   if (self->max_beams_ < 2)
     return 0.0;
 
   // Apply the planar sensor model
   if(self->model_type_ == PLANAR_MODEL_BEAM)
-    rv = calcBeamModel((PlanarData*)data, set);
+    rv = calcBeamModel(std::dynamic_pointer_cast<PlanarData>(data), set);
   else if(self->model_type_ == PLANAR_MODEL_LIKELIHOOD_FIELD)
-    rv = calcLikelihoodFieldModel((PlanarData*)data, set);
+    rv = calcLikelihoodFieldModel(std::dynamic_pointer_cast<PlanarData>(data), set);
   else if(self->model_type_ == PLANAR_MODEL_LIKELIHOOD_FIELD_PROB)
-    rv = calcLikelihoodFieldModelProb((PlanarData*)data, set);
+    rv = calcLikelihoodFieldModelProb(std::dynamic_pointer_cast<PlanarData>(data), set);
   else if(self->model_type_ == PLANAR_MODEL_LIKELIHOOD_FIELD_GOMPERTZ)
-    rv = calcLikelihoodFieldModelGompertz((PlanarData*)data, set);
+    rv = calcLikelihoodFieldModelGompertz(std::dynamic_pointer_cast<PlanarData>(data), set);
 
   // Apply the any configured correction factors from map
   if (rv > 0.0)
@@ -231,9 +237,9 @@ PlanarScanner::applyModelToSampleSet(SensorData *data, PFSampleSet *set)
 ////////////////////////////////////////////////////////////////////////////////
 // Determine the probability for the given pose
 double
-PlanarScanner::calcBeamModel(PlanarData *data, PFSampleSet* set)
+PlanarScanner::calcBeamModel(std::shared_ptr<PlanarData> data, PFSampleSet* set)
 {
-  PlanarScanner *self;
+  std::shared_ptr<PlanarScanner> self;
   int i, j, step;
   double z, pz;
   double p;
@@ -243,7 +249,7 @@ PlanarScanner::calcBeamModel(PlanarData *data, PFSampleSet* set)
   PFSample *sample;
   PFVector pose;
 
-  self = (PlanarScanner*) data->sensor_;
+  self = std::dynamic_pointer_cast<PlanarScanner>(data->sensor_);
 
   total_weight = 0.0;
 
@@ -261,8 +267,8 @@ PlanarScanner::calcBeamModel(PlanarData *data, PFSampleSet* set)
     step = (data->range_count_ - 1) / (self->max_beams_ - 1);
     for (i = 0; i < data->range_count_; i += step)
     {
-      obs_range = data->ranges_[i][0];
-      obs_bearing = data->ranges_[i][1];
+      obs_range = data->ranges_[i];
+      obs_bearing = data->angles_[i];
 
       // Compute the range according to the map
       map_range = self->map_->calcRange(pose.v[0], pose.v[1], pose.v[2] + obs_bearing,
@@ -303,9 +309,9 @@ PlanarScanner::calcBeamModel(PlanarData *data, PFSampleSet* set)
 }
 
 double
-PlanarScanner::calcLikelihoodFieldModel(PlanarData *data, PFSampleSet* set)
+PlanarScanner::calcLikelihoodFieldModel(std::shared_ptr<PlanarData> data, PFSampleSet* set)
 {
-  PlanarScanner *self;
+  std::shared_ptr<PlanarScanner> self;
   int i, j, step;
   double z, pz;
   double p;
@@ -315,7 +321,7 @@ PlanarScanner::calcLikelihoodFieldModel(PlanarData *data, PFSampleSet* set)
   PFVector pose;
   PFVector hit;
 
-  self = (PlanarScanner*) data->sensor_;
+  self = std::dynamic_pointer_cast<PlanarScanner>(data->sensor_);
 
   total_weight = 0.0;
 
@@ -342,8 +348,8 @@ PlanarScanner::calcLikelihoodFieldModel(PlanarData *data, PFSampleSet* set)
 
     for (i = 0; i < data->range_count_; i += step)
     {
-      obs_range = data->ranges_[i][0];
-      obs_bearing = data->ranges_[i][1];
+      obs_range = data->ranges_[i];
+      obs_bearing = data->angles_[i];
 
       // This model ignores max range readings
       if(obs_range >= data->range_max_)
@@ -396,9 +402,9 @@ PlanarScanner::calcLikelihoodFieldModel(PlanarData *data, PFSampleSet* set)
 }
 
 double
-PlanarScanner::calcLikelihoodFieldModelProb(PlanarData *data, PFSampleSet* set)
+PlanarScanner::calcLikelihoodFieldModelProb(std::shared_ptr<PlanarData> data, PFSampleSet* set)
 {
-  PlanarScanner *self;
+  std::shared_ptr<PlanarScanner> self;
   int i, j, step;
   double z, pz;
   double log_p;
@@ -408,7 +414,7 @@ PlanarScanner::calcLikelihoodFieldModelProb(PlanarData *data, PFSampleSet* set)
   PFVector pose;
   PFVector hit;
 
-  self = (PlanarScanner*) data->sensor_;
+  self = std::dynamic_pointer_cast<PlanarScanner>(data->sensor_);
 
   total_weight = 0.0;
 
@@ -478,8 +484,8 @@ PlanarScanner::calcLikelihoodFieldModelProb(PlanarData *data, PFSampleSet* set)
 
     for (i = 0; i < data->range_count_; i += step, beam_ind++)
     {
-      obs_range = data->ranges_[i][0];
-      obs_bearing = data->ranges_[i][1];
+      obs_range = data->ranges_[i];
+      obs_bearing = data->angles_[i];
 
       // This model ignores max range readings
       if(obs_range >= data->range_max_){
@@ -604,9 +610,9 @@ PlanarScanner::applyGompertz( double p )
 }
 
 double
-PlanarScanner::calcLikelihoodFieldModelGompertz(PlanarData *data, PFSampleSet* set)
+PlanarScanner::calcLikelihoodFieldModelGompertz(std::shared_ptr<PlanarData> data, PFSampleSet* set)
 {
-  PlanarScanner *self;
+  std::shared_ptr<PlanarScanner> self;
   int i, j, step;
   double z, pz;
   double p;
@@ -616,7 +622,7 @@ PlanarScanner::calcLikelihoodFieldModelGompertz(PlanarData *data, PFSampleSet* s
   PFVector pose;
   PFVector hit;
 
-  self = (PlanarScanner*) data->sensor_;
+  self = std::dynamic_pointer_cast<PlanarScanner>(data->sensor_);
 
   total_weight = 0.0;
 
@@ -642,8 +648,8 @@ PlanarScanner::calcLikelihoodFieldModelGompertz(PlanarData *data, PFSampleSet* s
     double sum_pz = 0.0;
     for (i = 0; i < data->range_count_; i += step)
     {
-      obs_range = data->ranges_[i][0];
-      obs_bearing = data->ranges_[i][1];
+      obs_range = data->ranges_[i];
+      obs_bearing = data->angles_[i];
 
       // This model ignores max range readings
       if(obs_range >= data->range_max_)

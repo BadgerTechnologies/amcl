@@ -36,11 +36,11 @@
 
 using namespace amcl;
 
-PointCloudScanner::PointCloudScanner(size_t max_beams, OctoMap* map, double point_cloud_scanner_height) : Sensor()
+PointCloudScanner::PointCloudScanner() : Sensor()
 {
-  this->max_beams_ = max_beams;
-  this->map_ = map;
-  this->point_cloud_scanner_height_ = point_cloud_scanner_height;
+  this->max_beams_ = 0;
+  this->map_ = nullptr;
+  this->point_cloud_scanner_height_ = 0;
 
   this->off_map_factor_ = 1.0;
   this->non_free_space_factor_ = 1.0;
@@ -50,8 +50,12 @@ PointCloudScanner::PointCloudScanner(size_t max_beams, OctoMap* map, double poin
     this->map_vec_ = {0, 0, 0};
 }
 
-PointCloudScanner::~PointCloudScanner()
+void
+PointCloudScanner::init(size_t max_beams, std::shared_ptr<OctoMap> map, double point_cloud_scanner_height)
 {
+  this->max_beams_ = max_beams;
+  this->map_ = map;
+  this->point_cloud_scanner_height_ = point_cloud_scanner_height;
 }
 
 void
@@ -101,7 +105,7 @@ PointCloudScanner::setPointCloudScannerToFootprintTF(tf::Transform point_cloud_s
 // Update the filter based on the sensor model.  Returns true if the
 // filter has been updated.
 bool
-PointCloudScanner::updateSensor(ParticleFilter *pf, SensorData *data)
+PointCloudScanner::updateSensor(std::shared_ptr<ParticleFilter> pf, std::shared_ptr<SensorData> data)
 {
   if (this->max_beams_ < 2)
     return false;
@@ -114,25 +118,25 @@ PointCloudScanner::updateSensor(ParticleFilter *pf, SensorData *data)
 // Update a sample set based on the sensor model.
 // Returns total weights of particles, or 0.0 on failure.
 double
-PointCloudScanner::applyModelToSampleSet(SensorData *data, PFSampleSet *set)
+PointCloudScanner::applyModelToSampleSet(std::shared_ptr<SensorData> data, PFSampleSet *set)
 {
-  PointCloudScanner *self;
+  std::shared_ptr<PointCloudScanner> self;
   double rv = 0.0;
   int j;
   PFSample *sample;
   PFVector pose;
   int mi, mj;
 
-  self = (PointCloudScanner*) data->sensor_;
+  self = std::dynamic_pointer_cast<PointCloudScanner>(data->sensor_);
   if(self->max_beams_ < 2)
       return 0.0;
   if(self->model_type_ == POINT_CLOUD_MODEL)
   {
-    rv = calcPointCloudModel((PointCloudData*) data, set);
+    rv = calcPointCloudModel(std::dynamic_pointer_cast<PointCloudData>(data), set);
   }
   else if(self->model_type_ == POINT_CLOUD_MODEL_GOMPERTZ)
   {
-    rv = calcPointCloudModelGompertz((PointCloudData*) data, set);
+    rv = calcPointCloudModelGompertz(std::dynamic_pointer_cast<PointCloudData>(data), set);
   }
 
   // Apply the any configured correction factors from map
@@ -163,14 +167,14 @@ PointCloudScanner::applyModelToSampleSet(SensorData *data, PFSampleSet *set)
 
 // Determine the probability for the given pose
 double
-PointCloudScanner::calcPointCloudModel(PointCloudData *data, PFSampleSet* set)
+PointCloudScanner::calcPointCloudModel(std::shared_ptr<PointCloudData> data, PFSampleSet* set)
 {
-  PointCloudScanner *self;
+  std::shared_ptr<PointCloudScanner> self;
   double total_weight = 0.0, p, z, pz;
   PFSample *sample;
   PFVector pose;
 
-  self = (PointCloudScanner*) data->sensor_;
+  self = std::dynamic_pointer_cast<PointCloudScanner>(data->sensor_);
   const double MAX_OCC_DIST = self->map_->getMaxOccDist();
   double z_hit_denom = 2 * self->sigma_hit_ * self->sigma_hit_;
   double z_rand_mult = 1.0/MAX_OCC_DIST;
@@ -201,13 +205,13 @@ PointCloudScanner::calcPointCloudModel(PointCloudData *data, PFSampleSet* set)
 }
 
 double
-PointCloudScanner::calcPointCloudModelGompertz(PointCloudData *data, PFSampleSet* set)
+PointCloudScanner::calcPointCloudModelGompertz(std::shared_ptr<PointCloudData> data, PFSampleSet* set)
 {
-  PointCloudScanner *self;
+  std::shared_ptr<PointCloudScanner> self;
   double total_weight = 0.0, p, z, pz, sum_pz;
   PFSample *sample;
   PFVector pose;
-  self = (PointCloudScanner*) data->sensor_;
+  self = std::dynamic_pointer_cast<PointCloudScanner>(data->sensor_);
   const double MAX_OCC_DIST = self->map_->getMaxOccDist();
   double z_hit_denom = 2 * self->sigma_hit_ * self->sigma_hit_;
   for(int sample_index = 0; sample_index < set->sample_count; sample_index++)
@@ -238,7 +242,7 @@ PointCloudScanner::calcPointCloudModelGompertz(PointCloudData *data, PFSampleSet
 }
 
 bool
-PointCloudScanner::getMapCloud(PointCloudScanner *self, PointCloudData *data,
+PointCloudScanner::getMapCloud(std::shared_ptr<PointCloudScanner> self, std::shared_ptr<PointCloudData> data,
                                PFVector pose, pcl::PointCloud<pcl::PointXYZ>& map_cloud)
 {
   pcl::PointCloud<pcl::PointXYZ> footprint_cloud;
