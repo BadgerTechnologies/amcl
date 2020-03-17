@@ -27,7 +27,7 @@
 using namespace amcl;
 
 // Create a new map
-Map::Map()
+Map::Map(double resolution) : resolution_(resolution)
 {
   origin_ = pcl::PointXYZ();
   resolution_ = 0;
@@ -42,11 +42,6 @@ pcl::PointXYZ Map::getOrigin()
 void Map::setOrigin(const pcl::PointXYZ& origin)
 {
   origin_ = origin;
-}
-
-void Map::setResolution(double resolution)
-{
-  resolution_ = resolution;
 }
 
 bool Map::isCSpaceCreated()
