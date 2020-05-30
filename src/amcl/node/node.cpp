@@ -145,7 +145,6 @@ Node::Node()
   }
   map_odom_transform_pub_ = nh_.advertise<nav_msgs::Odometry>("amcl_map_odom_transform", 1);
   global_loc_srv_ = nh_.advertiseService("global_localization", &Node::globalLocalizationCallback, this);
-  loadPose();
 
   if(odom_integrator_enabled_);
   {
@@ -469,14 +468,7 @@ void Node::publishInitialPose()
     pose.pose.covariance[i] = cov_vals[i];
   }
   ROS_INFO("Initial pose: (%.3f, %.3f)", pose.pose.pose.position.x, pose.pose.pose.position.y);
-  if(publish_initial_pose_at_startup_)
-  {
-    initial_pose_pub_.publish(pose);
-  }
-  else
-  {
-    initialPoseReceivedInternal(pose);
-  }
+  initial_pose_pub_.publish(pose);
 }
 
 bool Node::loadPoseFromServer()
@@ -693,23 +685,16 @@ void Node::initFromNewMap(std::shared_ptr<Map> new_map)
   pf_->setPopulationSizeParameters(pf_err_, pf_z_);
   pf_->setResampleModel(resample_model_type_);
 
-  PFVector pf_init_pose_mean;
-  pf_init_pose_mean.v[0] = init_pose_[0];
-  pf_init_pose_mean.v[1] = init_pose_[1];
-  pf_init_pose_mean.v[2] = init_pose_[2];
-  PFMatrix pf_init_pose_cov;
-  pf_init_pose_cov.m[0][0] = init_cov_[0];
-  pf_init_pose_cov.m[1][1] = init_cov_[1];
-  pf_init_pose_cov.m[2][2] = init_cov_[2];
-  pf_->init(pf_init_pose_mean, pf_init_pose_cov);
-  odom_init_ = false;
-
   // Instantiate the sensor objects
   // Odometry
   odom_.setModel(odom_model_type_, alpha1_, alpha2_, alpha3_, alpha4_, alpha5_);
 
   // Publish initial pose loaded from the server or file at startup
-  publishInitialPose();
+  if(publish_initial_pose_at_startup_)
+  {
+    loadPose();
+    publishInitialPose();
+  }
 }
 
 void Node::updateFreeSpaceIndices(std::vector<std::pair<int, int>> fsi)
