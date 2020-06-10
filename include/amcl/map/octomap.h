@@ -74,7 +74,7 @@ public:
   virtual void setMapBounds(const std::vector<double>& map_min, const std::vector<double>& map_max);
   // Update the distance values
   virtual void updateDistancesLUT();
-  virtual void initFromOctree(std::shared_ptr<octomap::OcTree> octree, double max_occ_dist);
+  virtual void initFromOctree(std::shared_ptr<octomap::OcTree> octree, double max_distance_to_object);
   virtual double getMaxOccDist();
   // This function is called very frequently.
   // Do not make it virtual as this would hinder performance.
@@ -103,7 +103,7 @@ protected:
   int map_cells_width_;
   uint32_t num_poses_;
   int num_z_column_indices_;
-  double max_occ_dist_ratio_;
+  double max_distance_ratio_;
 
   struct OctoMapCellData
   {

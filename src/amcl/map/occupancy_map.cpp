@@ -34,7 +34,7 @@ OccupancyMap::OccupancyMap(double resolution)
       size_y_(0),
       cdm_(resolution, 0.0)
 {
-  max_occ_dist_ = 0.0;
+  max_distance_to_object_ = 0.0;
   map_vec_.resize(2);
 }
 
@@ -56,7 +56,7 @@ void OccupancyMap::setSize(std::vector<int> size_vec)
 
 double OccupancyMap::getMaxOccDist()
 {
-  return max_occ_dist_;
+  return max_distance_to_object_;
 }
 
 void OccupancyMap::initCells(int num)
@@ -72,7 +72,7 @@ float OccupancyMap::getOccDist(int i, int j)
   {
     return distances_lut_[computeCellIndex(i, j)];
   }
-  return max_occ_dist_;
+  return max_distance_to_object_;
 }
 
 void OccupancyMap::convertMapToWorld(const std::vector<int>& map_coords,
@@ -138,10 +138,10 @@ CachedDistanceOccupancyMap::CachedDistanceOccupancyMap(double resolution, double
 }
 
 // Update the distance values
-void OccupancyMap::updateDistancesLUT(double max_occ_dist)
+void OccupancyMap::updateDistancesLUT(double max_distance_to_object)
 {
-  max_occ_dist_ = max_occ_dist;
-  if(max_occ_dist_ == 0.0)
+  max_distance_to_object_ = max_distance_to_object;
+  if(max_distance_to_object_ == 0.0)
   {
     ROS_DEBUG("Failed to update distances lut, max occ dist is 0");
     return;
@@ -152,9 +152,9 @@ void OccupancyMap::updateDistancesLUT(double max_occ_dist)
   unsigned s = unsigned(size_x_) * size_y_;
   std::vector<bool> marked = std::vector<bool>(s, false);
   distances_lut_.resize(unsigned(size_x_) * size_y_);
-  if ((cdm_.resolution_ != resolution_) || (cdm_.max_dist_ != max_occ_dist_))
+  if ((cdm_.resolution_ != resolution_) || (cdm_.max_dist_ != max_distance_to_object_))
   {
-    cdm_ = CachedDistanceOccupancyMap(resolution_, max_occ_dist_);
+    cdm_ = CachedDistanceOccupancyMap(resolution_, max_distance_to_object_);
   }
   iterateObstacleCells(q, marked);
   iterateEmptyCells(q, marked);
@@ -181,7 +181,7 @@ void OccupancyMap::iterateObstacleCells(std::priority_queue<OccupancyMapCellData
       }
       else
       {
-        setMapOccDist(i, j, max_occ_dist_);
+        setMapOccDist(i, j, max_distance_to_object_);
       }
     }
   }
