@@ -37,9 +37,9 @@ namespace badger_amcl
 OctoMap::OctoMap(double resolution)
     : OctoMap(resolution, false) {}
 
-OctoMap::OctoMap(double resolution, bool publish_cspace)
+OctoMap::OctoMap(double resolution, bool publish_distances)
     : Map(resolution),
-      publish_cspace_(publish_cspace),
+      publish_distances_(publish_distances),
       cdm_(resolution, 0.0)
 {
   cropped_min_cells_ = std::vector<int>(3);
@@ -146,7 +146,7 @@ void OctoMap::setMapBounds(const std::vector<double>& map_min, const std::vector
   map_cells_width_ = cropped_max_cells_[0] - cropped_min_cells_[0] + 1;
   num_poses_ = map_cells_width_ * (cropped_max_cells_[1] - cropped_min_cells_[1] + 1);
   num_z_column_indices_ = cropped_max_cells_[2] - cropped_min_cells_[2] + 1;
-  updateCSpace();
+  updateDistances();
 }
 
 CachedDistanceOctoMap::CachedDistanceOctoMap(double resolution, double max_dist)
@@ -171,15 +171,15 @@ CachedDistanceOctoMap::CachedDistanceOctoMap(double resolution, double max_dist)
 
 // Creates the distances lookup object populated with the distance from
 // each voxel to the nearest object in the static map
-void OctoMap::updateCSpace()
+void OctoMap::updateDistances()
 {
   if (max_occ_dist_ == 0.0)
   {
-    ROS_DEBUG("Failed to update cspace, max occ dist is 0");
+    ROS_DEBUG("Failed to update distances, max occ dist is 0");
     return;
   }
 
-  ROS_INFO("Updating OctoMap CSpace");
+  ROS_INFO("Updating OctoMap Distances");
   CellDataQueue q = CellDataQueue();
   pose_indices_.clear();
   pose_indices_.resize(num_poses_, 0);
@@ -197,13 +197,13 @@ void OctoMap::updateCSpace()
   octree_.reset();
   ROS_INFO("Iterating empty cells");
   iterateEmptyCells(q);
-  ROS_INFO("Done updating OctoMap CSpace");
-  if (publish_cspace_)
+  ROS_INFO("Done updating OctoMap Distances");
+  if (publish_distances_)
   {
-    publishCSpace();
+    publishDistances();
     ROS_INFO("Octree published");
   }
-  cspace_created_ = true;
+  distances_created_ = true;
 }
 
 void OctoMap::iterateObstacleCells(CellDataQueue& q)
@@ -334,9 +334,9 @@ void OctoMap::setOccDist(int i, int j, int k, double d)
 // returns the distance from the 3d voxel to the nearest object in the static map
 double OctoMap::getOccDist(int i, int j, int k)
 {
-  // Checking if cspace is created first will prevent checking validity while creating the cspace.
-  // The cspace is assumed to not send invalid coordinates and checking every time is inefficient.
-  if(cspace_created_ and !isVoxelValid(i, j, k))
+  // Checking if distances is created first will prevent checking validity while creating distances.
+  // The distances container is assumed to not send invalid coordinates and checking every time is inefficient.
+  if(distances_created_ and !isVoxelValid(i, j, k))
     return max_occ_dist_;
   int i_shifted = i - cropped_min_cells_[0];
   int j_shifted = j - cropped_min_cells_[1];
@@ -353,7 +353,7 @@ uint32_t OctoMap::makePoseIndex(int i, int j)
   return j * map_cells_width_ + i;
 }
 
-void OctoMap::publishCSpace()
+void OctoMap::publishDistances()
 {
   using PointCloud = pcl::PointCloud<pcl::PointXYZI>;
   PointCloud::Ptr cloud(new PointCloud);

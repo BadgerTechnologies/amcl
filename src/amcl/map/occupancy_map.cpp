@@ -137,17 +137,17 @@ CachedDistanceOccupancyMap::CachedDistanceOccupancyMap(double resolution, double
   }
 }
 
-// Update the cspace distance values
-void OccupancyMap::updateCSpace(double max_occ_dist)
+// Update the distance values
+void OccupancyMap::updateDistances(double max_occ_dist)
 {
   max_occ_dist_ = max_occ_dist;
   if(max_occ_dist_ == 0.0)
   {
-    ROS_DEBUG("Failed to update cspace, max occ dist is 0");
+    ROS_DEBUG("Failed to update distances, max occ dist is 0");
     return;
   }
 
-  ROS_INFO("Updating Occupancy Map CSpace");
+  ROS_INFO("Updating Occupancy Map Distances");
   std::priority_queue<OccupancyMapCellData> q = std::priority_queue<OccupancyMapCellData>();
   unsigned s = unsigned(size_x_) * size_y_;
   std::vector<bool> marked = std::vector<bool>(s, false);
@@ -158,8 +158,8 @@ void OccupancyMap::updateCSpace(double max_occ_dist)
   }
   iterateObstacleCells(q, marked);
   iterateEmptyCells(q, marked);
-  cspace_created_ = true;
-  ROS_INFO("Done updating Occupancy Map CSpace");
+  distances_created_ = true;
+  ROS_INFO("Done updating Occupancy Map Distances");
 }
 
 void OccupancyMap::iterateObstacleCells(std::priority_queue<OccupancyMapCellData>& q,

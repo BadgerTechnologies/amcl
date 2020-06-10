@@ -59,7 +59,7 @@ class OctoMap : public Map
 {
 public:
   OctoMap(double resolution);
-  OctoMap(double resolution, bool publish_cspace);
+  OctoMap(double resolution, bool publish_distances);
   virtual ~OctoMap() = default;
   // Convert from map index to world coords
   virtual void convertMapToWorld(const std::vector<int>& map_coords,
@@ -72,8 +72,8 @@ public:
   virtual bool isVoxelValid(const int i, const int j, const int k);
   virtual void getMinMaxCells(std::vector<int>* min_cells, std::vector<int>* max_cells);
   virtual void setMapBounds(const std::vector<double>& map_min, const std::vector<double>& map_max);
-  // Update the cspace distance values
-  virtual void updateCSpace();
+  // Update the distance values
+  virtual void updateDistances();
   virtual void initFromOctree(std::shared_ptr<octomap::OcTree> octree, double max_occ_dist);
   virtual double getMaxOccDist();
   // This function is called very frequently.
@@ -113,11 +113,11 @@ protected:
   };
 
 private:
-  void publishCSpace();
+  void publishDistances();
 
   ros::NodeHandle nh_;
   ros::Publisher distances_pub_;
-  bool publish_cspace_;
+  bool publish_distances_;
 };
 }  // namespace amcl
 

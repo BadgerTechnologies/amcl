@@ -67,8 +67,8 @@ public:
   virtual void setOrigin(const pcl::PointXYZ& origin);
   virtual std::vector<int> getSize();
   virtual void setSize(std::vector<int> size_vec);
-  // Update the cspace distance values
-  virtual void updateCSpace(double max_occ_dist);
+  // Update the distance values
+  virtual void updateDistances(double max_occ_dist);
   // Extract a single range reading from the map
   virtual double calcRange(double ox, double oy, double oa, double max_range);
   // Compute the cell index for the given map coords.
