@@ -64,17 +64,17 @@ void PlanarScanner::setModelBeam(double z_hit, double z_short, double z_max, dou
 }
 
 void PlanarScanner::setModelLikelihoodField(double z_hit, double z_rand, double sigma_hit,
-                                            double max_occ_dist)
+                                            double max_distance_to_object)
 {
   model_type_ = PLANAR_MODEL_LIKELIHOOD_FIELD;
   z_hit_ = z_hit;
   z_rand_ = z_rand;
   sigma_hit_ = sigma_hit;
-  map_->updateDistances(max_occ_dist);
+  map_->updateDistances(max_distance_to_object);
 }
 
 void PlanarScanner::setModelLikelihoodFieldProb(double z_hit, double z_rand, double sigma_hit,
-                                                double max_occ_dist, bool do_beamskip,
+                                                double max_distance_to_object, bool do_beamskip,
                                                 double beam_skip_distance,
                                                 double beam_skip_threshold,
                                                 double beam_skip_error_threshold)
@@ -87,11 +87,11 @@ void PlanarScanner::setModelLikelihoodFieldProb(double z_hit, double z_rand, dou
   beam_skip_distance_ = beam_skip_distance;
   beam_skip_threshold_ = beam_skip_threshold;
   beam_skip_error_threshold_ = beam_skip_error_threshold;
-  map_->updateDistances(max_occ_dist);
+  map_->updateDistances(max_distance_to_object);
 }
 
 void PlanarScanner::setModelLikelihoodFieldGompertz(double z_hit, double z_rand, double sigma_hit,
-                                                    double max_occ_dist, double gompertz_a,
+                                                    double max_distance_to_object, double gompertz_a,
                                                     double gompertz_b, double gompertz_c,
                                                     double input_shift, double input_scale,
                                                     double output_shift)
@@ -108,7 +108,7 @@ void PlanarScanner::setModelLikelihoodFieldGompertz(double z_hit, double z_rand,
   input_shift_ = input_shift;
   input_scale_ = input_scale;
   output_shift_ = output_shift;
-  map_->updateDistances(max_occ_dist);
+  map_->updateDistances(max_distance_to_object);
 }
 
 void PlanarScanner::setMapFactors(double off_map_factor, double non_free_space_factor,
