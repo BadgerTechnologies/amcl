@@ -20,6 +20,7 @@
 #ifndef AMCL_SENSORS_POINT_CLOUD_SCANNER_H
 #define AMCL_SENSORS_POINT_CLOUD_SCANNER_H
 
+#include <Eigen/Dense>
 #include <memory>
 
 #include <pcl/point_types.h>
@@ -28,7 +29,6 @@
 
 #include "map/octomap.h"
 #include "pf/particle_filter.h"
-#include "pf/pf_vector.h"
 #include "sensors/sensor.h"
 
 namespace badger_amcl
@@ -81,7 +81,7 @@ private:
   double calcPointCloudModel(std::shared_ptr<PointCloudData> data, std::shared_ptr<PFSampleSet> set);
   double calcPointCloudModelGompertz(std::shared_ptr<PointCloudData> data, std::shared_ptr<PFSampleSet> set);
   double recalcWeight(std::shared_ptr<PFSampleSet> set);
-  void getMapCloud(std::shared_ptr<PointCloudData> data, PFVector pose,
+  void getMapCloud(std::shared_ptr<PointCloudData> data, Eigen::Vector3d pose,
                    pcl::PointCloud<pcl::PointXYZ>& map_cloud);
 
   std::shared_ptr<OctoMap> map_;

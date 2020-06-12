@@ -21,7 +21,7 @@
 #ifndef AMCL_PF_PDF_GAUSSIAN_H
 #define AMCL_PF_PDF_GAUSSIAN_H
 
-#include "pf/pf_vector.h"
+#include <Eigen/Dense>
 
 namespace badger_amcl
 {
@@ -32,10 +32,10 @@ class PDFGaussian
 {
 public:
   // Create a gaussian pdf
-  PDFGaussian(PFVector x, PFMatrix cx);
+  PDFGaussian(Eigen::Vector3d x, Eigen::Matrix3d cx);
 
   // Generate a sample from the the pdf.
-  PFVector sample();
+  Eigen::Vector3d sample();
 
   // Draw randomly from a zero-mean Gaussian distribution, with standard
   // deviation sigma.
@@ -44,13 +44,17 @@ public:
   static double draw(double sigma);
 
 private:
+  // Decompose a covariance matrix [a] into a rotation matrix [r] and a diagonal
+  // matrix [d] such that a = r d r^T.
+  void decompose(Eigen::Matrix3d& m, Eigen::Matrix3d& r, Eigen::Matrix3d& d);
+
   // Mean, covariance and inverse covariance
-  PFVector x_;
-  PFMatrix cx_;
+  Eigen::Vector3d x_;
+  Eigen::Matrix3d cx_;
 
   // Decomposed covariance matrix (rotation * diagonal)
-  PFMatrix cr_;
-  PFVector cd_;
+  Eigen::Matrix3d cr_;
+  Eigen::Vector3d cd_;
 };
 
 }  // namespace amcl

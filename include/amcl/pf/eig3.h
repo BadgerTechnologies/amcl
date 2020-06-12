@@ -7,19 +7,19 @@
 /* Symmetric matrix A => eigenvectors in columns of V, corresponding
    eigenvalues in d. */
 
-#include "pf/pf_vector.h"
+#include <Eigen/Dense>
 
 namespace badger_amcl
 {
 class EIG3
 {
 public:
-  static void eigenDecomposition(const PFMatrix& A, PFMatrix* V, PFVector* d);
+  static void eigenDecomposition(const Eigen::Matrix3d& A, Eigen::Matrix3d& V, Eigen::Vector3d& d);
 
 private:
   static constexpr int N = 3;
-  static void tred2(PFMatrix* V, PFVector* d, PFVector* e);
-  static void tql2(PFMatrix* V, PFVector* d, PFVector* e);
+  static void tred2(Eigen::Matrix3d& V, Eigen::Vector3d& d, Eigen::Vector3d& e);
+  static void tql2(Eigen::Matrix3d& V, Eigen::Vector3d& d, Eigen::Vector3d& e);
 };
 
 }  // namespace amcl
