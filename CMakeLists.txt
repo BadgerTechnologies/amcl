@@ -50,7 +50,6 @@ add_library(badger_amcl_core
     src/amcl/pf/particle_filter.cpp
     src/amcl/pf/pf_kdtree.cpp
     src/amcl/pf/pdf_gaussian.cpp
-    src/amcl/pf/pf_vector.cpp
     src/amcl/pf/eig3.cpp
     src/amcl/map/map.cpp
     src/amcl/map/occupancy_map.cpp
