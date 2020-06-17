@@ -20,11 +20,10 @@
 
 #include "pf/pdf_gaussian.h"
 
+#include <Eigen/Eigenvalues>
 #include <stdlib.h>
 
 #include <cmath>
-
-#include <pf/eig3.h>
 
 namespace badger_amcl
 {
@@ -95,8 +94,8 @@ void PDFGaussian::decompose(const Eigen::Matrix3d& m, Eigen::Matrix3d& r, Eigen:
   int i, j;
 
   Eigen::Matrix3d aa;
-  Eigen::Vector3d eval;
-  Eigen::Matrix3d evec;
+  Eigen::Vector3cd eval;
+  Eigen::Matrix3cd evec;
 
   for (i = 0; i < 3; i++)
   {
@@ -106,14 +105,16 @@ void PDFGaussian::decompose(const Eigen::Matrix3d& m, Eigen::Matrix3d& r, Eigen:
     }
   }
 
-  EIG3::eigenDecomposition(aa, evec, eval);
+  Eigen::EigenSolver<Eigen::MatrixXd> solver(aa, true);
+  eval = solver.eigenvalues();
+  evec = solver.eigenvectors();
 
   for (i = 0; i < 3; i++)
   {
-    d(i, i) = eval[i];
+    d(i, i) = eval[i].real();
     for (j = 0; j < 3; j++)
     {
-      r(i, j) = evec(i, j);
+      r(i, j) = evec(i, j).real();
     }
   }
 }

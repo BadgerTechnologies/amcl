@@ -19,6 +19,7 @@ find_package(catkin REQUIRED
 
 find_package(Boost REQUIRED)
 find_package(OCTOMAP REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 # dynamic reconfigure
 generate_dynamic_reconfigure_options(
@@ -48,6 +49,7 @@ include_directories(
     ${OCTOMAP_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
     ${catkin_INCLUDE_DIRS}
+    ${EIGEN3_INCLUDE_DIRS}
 )
 
 add_library(badger_amcl_core
