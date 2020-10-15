@@ -129,7 +129,7 @@ Node::Node()
 
   transform_tolerance_.fromSec(transform_tolerance_val);
 
-  initial_pose_sub_ = nh_.subscribe("initialpose", 2, &Node::initialPoseReceived, this);
+  initial_pose_sub_ = nh_.subscribe("/initialpose", 2, &Node::initialPoseReceived, this);
 
   pose_pub_ = nh_.advertise<geometry_msgs::PoseWithCovarianceStamped>("amcl_pose", 2, true);
   particlecloud_pub_ = nh_.advertise<geometry_msgs::PoseArray>("particlecloud", 2, true);
@@ -151,7 +151,7 @@ Node::Node()
 
   if(odom_integrator_enabled_);
   {
-    std::string odom_integrator_topic = "odom";
+    std::string odom_integrator_topic = "/odom";
     odom_integrator_sub_ = nh_.subscribe(odom_integrator_topic, 20, &Node::integrateOdom, this);
     absolute_motion_pub_ = nh_.advertise<geometry_msgs::Pose2D>("amcl_absolute_motion", 20, false);
   }
